@@ -1,0 +1,63 @@
+## Hello, World!
+
+Please create a folder under current directory test. Write "Hello, world!" into test/hello.txt
+
+## Video Download
+
+Help me download theaudio of the first video of this play list and save to ./test. "https://www.youtube.com/watch?v=dQw4w9WgXcQ." Name it test.mp3.
+
+## Play Audio
+
+Can you play ./test/test.mp3 for me?
+
+## Basic System Awareness
+
+"What is today's date and time?"
+"How much free disk space do I have?"
+"What is my username and home directory?"
+"What version of Python is installed?"
+"How long has this machine been running?"
+
+## Reasoning + Computation
+
+"How old is Bill Gates today?" (must look up birth year with echo, calculate with python3 -c)
+"How many days until Christmas?"
+"What is the square root of 144?"
+
+## File System Tasks
+
+"How many Python files are in my current directory and subdirectories?"
+"Find all files larger than 10MB in my home folder"
+"What is the most recently modified file in this folder?"
+"How many lines of code are in main.py?"
+
+## System Performance
+
+"How is my CPU performing right now?"
+"Which process is using the most memory?"
+"Is my disk running out of space?"
+"How many CPU cores do I have?"
+
+## Multi-step Tasks
+
+"Create a folder called logs, write today's date into a file called session.log inside it"
+"Download the webpage at https://example.com and count how many words it contains"
+"Find all .mp3 files in ./test and list their total combined size"
+"Check if port 8080 is open on this machine"
+
+## Media Tasks
+
+"How long is the audio file in ./test/test.mp3?"
+"Convert ./test/test.mp3 to a .wav file"
+"What is the bitrate of ./test/test.mp3?"
+
+## Resilience & Error Handling
+
+"Delete a file that doesn't exist and tell me what happened"
+"List the contents of a folder that doesn't exist"
+"Run a command that will fail and recover gracefully"
+
+## Fun
+
+"Why does the chicken cross the road?"
+"What is the tallest mountain in the world?"

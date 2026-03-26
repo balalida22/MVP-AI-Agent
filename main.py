@@ -58,7 +58,10 @@ while True:
         continue
     messages.append({"role": "user", "content": user_input})
     while True:
-        response = ollama.chat(model=MODEL, messages=messages)
+        response = ollama.chat(model=MODEL, messages=messages,
+                            #    options={"temperature": 0.1},
+                            #    think=True
+                               )
         tokens_used = response.get("prompt_eval_count", tokens_used)
         reply = response["message"]["content"]
         print(f"<DEBUG>{reply}<DEBUG>")
