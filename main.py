@@ -2,7 +2,7 @@ import ollama
 import subprocess
 import os
 MODEL = "mistral-nemo:12b"
-
+CONTEXT = 1024000
 MAX_CHARS = 3000
 
 def truncate_output(output: str, max_chars: int = MAX_CHARS) -> str:
@@ -34,15 +34,17 @@ def confirm_and_run(command: str, verbose = True) -> str:
     output = truncate_output("".join(output_lines))
     return output if output else f"(exit code {return_code}, no output)"
 
-
-
-messages = [{"role": "system", "content": open("agent.md", "r").read()+open("SKILL.md", "r").read()}]
+system_prompt = open("agent.md", "r").read()+open("SKILL.md", "r").read()
+tokens_used = len(system_prompt)/4
+messages = [{"role": "system", "content": system_prompt}]
 messages.append({"role": "assistant", "content": "Hello! How can I assist you today?"})
 while True:
-    user_input = input("\n[User] ")
+    pct = round((tokens_used / CONTEXT) * 100, 1)
+    user_input = input(f"\n[User({pct}%)] ")
     messages.append({"role": "user", "content": user_input})
     while True:
         response = ollama.chat(model=MODEL, messages=messages)
+        tokens_used = response.get("prompt_eval_count", tokens_used)
         reply = response["message"]["content"]
         # print(f"<DEBUG>{reply}<DEBUG>")
         messages.append({"role": "assistant", "content": reply})

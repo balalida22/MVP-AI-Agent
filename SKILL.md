@@ -191,3 +191,55 @@ as `vlc` requires a graphical interface and may fail in non-desktop environments
 - Show file info: `ffprobe -v quiet -print_format json -show_format -show_streams <file>`
 - Show duration only: `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 <file>`
 - Check codec info: `ffprobe -v error -select_streams v:0 -show_entries stream=codec_name <file>`
+
+### Date & Time
+- `date` — current date and time
+- `date +%Y-%m-%d` — formatted date
+- `python3 -c "from datetime import date; print((date.today() - date(YEAR,M,D)).days)"` — date arithmetic
+
+### System Info
+- `uname -r` — kernel version
+- `lsb_release -a` — OS version
+- `uptime` — system uptime
+- `whoami` — current user
+- `echo $HOME` — home directory
+- `lscpu | grep -E 'Model|CPU\(s\)|MHz'` — CPU summary
+- `free -h` — memory usage
+- `df -h` — disk usage
+- `top -bn1 | head -20` — CPU/memory snapshot
+
+### File System
+- `find . -name "*.py" | wc -l` — count files by type
+- `find . -size +10M` — files larger than 10MB
+- `ls -lt | head -5` — most recently modified files
+- `wc -l <file>` — line count
+- `du -sh <folder>` — folder size
+- `stat <file>` — file metadata
+
+### Process Management
+- `ps aux --sort=-%mem | head -10` — top memory processes
+- `ps aux --sort=-%cpu | head -10` — top CPU processes
+
+### Networking
+- `curl -s <url>` — fetch URL content
+- `ss -tulnp` — open ports
+- `ping -c 3 <host>` — connectivity check
+
+### Media
+- `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 <file>` — media duration
+- `ffprobe -v quiet -print_format json -show_format -show_streams <file>` — full media info
+- `ffmpeg -i <input> <output>` — convert format
+- `cvlc --play-and-exit <file>` — play audio
+
+### Text Processing
+- `cat <file>` — print file
+- `grep -r "<pattern>" .` — search content
+- `wc -w <file>` — word count
+- `sed -i 's/old/new/g' <file>` — find and replace
+- `awk '{print $1}' <file>` — extract column
+- `sort <file> | uniq -c | sort -rn` — frequency count
+
+### Python One-liners (for computation)
+- `python3 -c "import math; print(math.sqrt(144))"` — math
+- `python3 -c "from datetime import date; print(date.today())"` — today's date
+- `python3 -c "print(2026 - 1955)"` — arithmetic
