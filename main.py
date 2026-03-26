@@ -1,7 +1,7 @@
 import ollama
 import subprocess
 import os
-MODEL = "mistral-nemo:12b"
+MODEL = "qwen3:8b"
 
 MAX_CHARS = 3000
 CONTEXT = 1024000
@@ -60,11 +60,11 @@ while True:
     while True:
         response = ollama.chat(model=MODEL, messages=messages,
                             #    options={"temperature": 0.1},
-                            #    think=True
+                               think=True
                                )
         tokens_used = response.get("prompt_eval_count", tokens_used)
         reply = response["message"]["content"]
-        print(f"<DEBUG>{reply}<DEBUG>")
+        # print(f"<DEBUG>{reply}<DEBUG>")
         messages.append({"role": "assistant", "content": reply})
         if reply.strip().startswith("FINISH:"):
             finish_message = reply.strip().split("FINISH:", 1)[1].strip()
@@ -75,4 +75,4 @@ while True:
             messages.append({"role": "user", "content": f"EXECUTED {command_result}"})
         else:
             messages.append({"role": "user", "content": "Invalid format. You must reply with either COMMAND: <cmd> or FINISH: <msg>. Try again."})
-    print(messages)
+    # print(messages)
