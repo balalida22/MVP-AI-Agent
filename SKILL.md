@@ -187,6 +187,8 @@ as `vlc` requires a graphical interface and may fail in non-desktop environments
 - Extract frames every second: `ffmpeg -i <input.mp4> -vf fps=1 frame_%04d.jpg`
 - Create video from images: `ffmpeg -framerate 24 -i frame_%04d.jpg <output.mp4>`
 
+## Essential Commands the Agent Should Master
+
 ### Inspection
 - Show file info: `ffprobe -v quiet -print_format json -show_format -show_streams <file>`
 - Show duration only: `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 <file>`
@@ -243,3 +245,41 @@ as `vlc` requires a graphical interface and may fail in non-desktop environments
 - `python3 -c "import math; print(math.sqrt(144))"` — math
 - `python3 -c "from datetime import date; print(date.today())"` — today's date
 - `python3 -c "print(2026 - 1955)"` — arithmetic
+
+## Skill: Web Interaction
+
+### Fetching Web Content
+- Fetch a webpage as text: `curl -s <url>`
+- Fetch with headers: `curl -sI <url>`
+- Fetch and save to file: `curl -s <url> -o <file>`
+- Fetch with redirect following: `curl -sL <url>`
+- Fetch JSON from an API: `curl -s <url> | python3 -m json.tool`
+- Download a file: `wget -q <url> -O <file>`
+
+### Web Search & Data Extraction
+- Extract page title: `curl -sL <url> | grep -o '<title>[^<]*' | head -1`
+- Count words on a page: `curl -sL <url> | sed 's/<[^>]*>//g' | wc -w`
+- Extract all links from a page: `curl -sL <url> | grep -oP 'href="\K[^"]*'`
+- Strip HTML tags and read content: `curl -sL <url> | sed 's/<[^>]*>//g' | tr -s ' \n'`
+
+### APIs & JSON
+- Fetch public JSON API: `curl -s <api_url>`
+- Pretty print JSON response: `curl -s <api_url> | python3 -m json.tool`
+- Get current public IP: `curl -s https://api.ipify.org`
+- Get IP geolocation info: `curl -s https://ipinfo.io`
+- Get weather (wttr.in): `curl -s wttr.in/<city>?format=3`
+- Get a random joke: `curl -s https://icanhazdadjoke.com/ -H "Accept: application/json"`
+- Look up a word definition: `curl -s https://api.dictionaryapi.dev/api/v2/entries/en/<word>`
+
+### Checking Connectivity
+- Check if a site is reachable: `curl -s --max-time 5 <url> -o /dev/null -w "%{http_code}"`
+- Check HTTP response code: `curl -o /dev/null -sw "%{http_code}" <url>`
+- Measure page load time: `curl -s -o /dev/null -w "%{time_total}s" <url>`
+
+### Wikipedia & Public Knowledge
+- Get a Wikipedia summary: `curl -s "https://en.wikipedia.org/api/rest_v1/page/summary/<topic>" | python3 -m json.tool`
+- Extract just the summary text: `curl -s "https://en.wikipedia.org/api/rest_v1/page/summary/<topic>" | python3 -c "import sys,json; print(json.load(sys.stdin)['extract'])"`
+
+### Date & Time via Web
+- Get current UTC time: `curl -s "https://worldtimeapi.org/api/timezone/UTC" | python3 -c "import sys,json; print(json.load(sys.stdin)['datetime'])"`
+- Get time for a timezone: `curl -s "https://worldtimeapi.org/api/timezone/<region>/<city>" | python3 -c "import sys,json; print(json.load(sys.stdin)['datetime'])"`
