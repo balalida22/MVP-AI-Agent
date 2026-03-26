@@ -133,3 +133,61 @@
 - Show video metadata without downloading: `yt-dlp --dump-json <url>`
 - Update yt-dlp to latest version: `yt-dlp -U`
 - Install yt-dlp if not present: `pip install yt-dlp`
+
+## Skill: Playing Audio/Video with VLC
+
+- Play a file: `cvlc <file>`
+- Play without interface (clean output): `cvlc --play-and-exit <file>`
+- Play an audio file: `cvlc --play-and-exit ./path/to/file.mp3`
+- Play a video file: `cvlc --play-and-exit ./path/to/file.mp4`
+- Play a playlist folder: `cvlc ./folder/`
+- Play with volume (0-512, default 256): `cvlc --gain 1.5 <file>`
+- Loop a file: `cvlc --loop <file>`
+- Play a YouTube URL: `cvlc <youtube_url>`
+
+Note: Always use `cvlc` instead of `vlc` when running from a subprocess or terminal agent,
+as `vlc` requires a graphical interface and may fail in non-desktop environments.
+
+---
+
+## Skill: Media Manipulation with FFmpeg
+
+### Format Conversion
+- Convert video format: `ffmpeg -i <input.mp4> <output.mkv>`
+- Convert audio format: `ffmpeg -i <input.mp3> <output.wav>`
+- Extract audio from video: `ffmpeg -i <input.mp4> -vn -acodec mp3 <output.mp3>`
+- Strip audio from video: `ffmpeg -i <input.mp4> -an <output.mp4>`
+
+### Trimming & Cutting
+- Trim by time: `ffmpeg -i <input> -ss 00:01:00 -to 00:02:00 -c copy <output>`
+- Trim by duration: `ffmpeg -i <input> -ss 00:01:00 -t 30 -c copy <output>`
+- Cut from start: `ffmpeg -i <input> -t 00:01:00 -c copy <output>`
+
+### Merging & Concatenation
+- Merge video and audio: `ffmpeg -i <video.mp4> -i <audio.mp3> -c:v copy -c:a aac <output.mp4>`
+- Concatenate files (requires a list file): `ffmpeg -f concat -safe 0 -i list.txt -c copy <output.mp4>`
+- Create list.txt for concat: `printf "file 'part1.mp4'\nfile 'part2.mp4'" > list.txt`
+
+### Video Manipulation
+- Resize video: `ffmpeg -i <input.mp4> -vf scale=1280:720 <output.mp4>`
+- Change framerate: `ffmpeg -i <input.mp4> -r 30 <output.mp4>`
+- Rotate video 90°: `ffmpeg -i <input.mp4> -vf transpose=1 <output.mp4>`
+- Add subtitles: `ffmpeg -i <input.mp4> -vf subtitles=<sub.srt> <output.mp4>`
+- Speed up video 2x: `ffmpeg -i <input.mp4> -vf setpts=0.5*PTS <output.mp4>`
+- Slow down video 0.5x: `ffmpeg -i <input.mp4> -vf setpts=2.0*PTS <output.mp4>`
+
+### Audio Manipulation
+- Adjust volume: `ffmpeg -i <input.mp3> -af volume=1.5 <output.mp3>`
+- Normalize audio: `ffmpeg -i <input.mp3> -af loudnorm <output.mp3>`
+- Change audio speed: `ffmpeg -i <input.mp3> -af atempo=1.5 <output.mp3>`
+- Trim silence: `ffmpeg -i <input.mp3> -af silenceremove=1:0:-50dB <output.mp3>`
+
+### Thumbnails & Frames
+- Extract a frame at timestamp: `ffmpeg -i <input.mp4> -ss 00:00:05 -frames:v 1 <output.jpg>`
+- Extract frames every second: `ffmpeg -i <input.mp4> -vf fps=1 frame_%04d.jpg`
+- Create video from images: `ffmpeg -framerate 24 -i frame_%04d.jpg <output.mp4>`
+
+### Inspection
+- Show file info: `ffprobe -v quiet -print_format json -show_format -show_streams <file>`
+- Show duration only: `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 <file>`
+- Check codec info: `ffprobe -v error -select_streams v:0 -show_entries stream=codec_name <file>`

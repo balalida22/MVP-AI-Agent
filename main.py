@@ -3,6 +3,15 @@ import subprocess
 import os
 MODEL = "mistral-nemo:12b"
 
+MAX_CHARS = 3000
+
+def truncate_output(output: str, max_chars: int = MAX_CHARS) -> str:
+    if len(output) <= max_chars:
+        return output
+    half = max_chars // 2
+    omitted = len(output) - max_chars
+    return output[:half] + f"\n\n... ({omitted} chars omitted) ...\n\n" + output[-half:]
+
 def confirm_and_run(command: str, verbose = True) -> str:
     choice = input(f"\n[Run Command?] {command} [y/N] ").strip().lower()
     if choice != "y":
@@ -12,7 +21,8 @@ def confirm_and_run(command: str, verbose = True) -> str:
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True
+        text=True,
+        # env=os.environ.copy()
     )
     output_lines = []
     for line in process.stdout:
@@ -20,24 +30,29 @@ def confirm_and_run(command: str, verbose = True) -> str:
         if verbose:
             print(line, end="", flush=True)
     process.wait()
-    output = "".join(output_lines)
-    return output if output else "(no output)"
-    # result = subprocess.run(command,shell=True,capture_output=True,text=True)
-    # output = result.stdout + result.stderr
-    # return output if output else "(no output)"
+    return_code = process.returncode
+    output = truncate_output("".join(output_lines))
+    return output if output else f"(exit code {return_code}, no output)"
 
 
 
 messages = [{"role": "system", "content": open("agent.md", "r").read()+open("SKILL.md", "r").read()}]
+messages.append({"role": "assistant", "content": "Hello! How can I assist you today?"})
 while True:
-    user_input = input("\nUser > ")
+    user_input = input("\n[User] ")
     messages.append({"role": "user", "content": user_input})
     while True:
         response = ollama.chat(model=MODEL, messages=messages)
         reply = response["message"]["content"]
-        print(reply)
+        print(f"<DEBUG>{reply}<DEBUG>")
         messages.append({"role": "assistant", "content": reply})
         if reply.strip().startswith("FINISH:"):
+            finish_message = reply.strip().split("FINISH:", 1)[1].strip()
+            print(f"\n[Agent] {finish_message}")
             break
-        command_result = confirm_and_run(reply.strip().split("COMMAND:")[1].strip())
-        messages.append({"role": "user", "content": f"EXECUTED {command_result}"})
+        if "COMMAND:" in reply:
+            command_result = confirm_and_run(command = reply.strip().split("COMMAND:")[1].strip(), verbose = True)
+            messages.append({"role": "user", "content": f"EXECUTED {command_result}"})
+        else:
+            messages.append({"role": "user", "content": "Invalid format. You must reply with either COMMAND: <cmd> or FINISH: <summary>. Try again."})
+        # print(messages)
