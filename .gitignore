@@ -11,3 +11,6 @@ wheels/
 
 test/
 .env
+
+# Agent runtime
+runtime/
