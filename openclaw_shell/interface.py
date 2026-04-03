@@ -17,20 +17,17 @@ import ollama
 import colorama
 
 from .configuration import Config
-
-def _load_text(path: str, config: Config) -> str:
-    with open(config.base_dir / path, "r", encoding="utf-8") as f:
-        return f.read()
+from .session import Session
 
 
 def _is_claude_model(model: str) -> bool:
     return model.startswith("claude-")
 
 
-def _chat_with_ollama(chat_messages: list[dict[str, str]], config: Config) -> dict[str, Any]:
+def _chat_with_ollama(session: Session, config: Config) -> dict[str, Any]:
     response: dict[str, Any] = ollama.chat(
-        model=config.model,
-        messages=chat_messages,
+        model=session.model,
+        messages=session.messages,
         # options={"temperature": 0.1},
         think=config.think,
     )
@@ -39,7 +36,8 @@ def _chat_with_ollama(chat_messages: list[dict[str, str]], config: Config) -> di
         "prompt_tokens": response.get("prompt_eval_count"),
     }
 
-async def _stream_chat_with_ollama(chat_messages: list[dict[str, str]], config: Config) -> dict[str, Any]:
+async def _stream_chat_with_ollama(session: Session) -> dict[str, Any]:
+    config = session.config
     reply = ""
     prompt_tokens = 0
     is_thinking = config.think
@@ -50,8 +48,8 @@ async def _stream_chat_with_ollama(chat_messages: list[dict[str, str]], config: 
         print("Thinking:")
 
     async for part in await ollama.AsyncClient().chat(
-        model=config.model,
-        messages=chat_messages,
+        model=session.model,
+        messages=session.messages,
         # options={"temperature": 0.1},
         think=config.think,
         stream=True
@@ -75,17 +73,17 @@ async def _stream_chat_with_ollama(chat_messages: list[dict[str, str]], config: 
         "prompt_tokens": prompt_tokens,
     }
 
-def _chat_with_claude(chat_messages: list[dict[str, str]], config: Config) -> dict[str, Any]:
+def _chat_with_claude(session: Session) -> dict[str, Any]:
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError(
             "ANTHROPIC_API_KEY is not set. Set it before using Claude models."
         )
 
-    system_parts = [m["content"] for m in chat_messages if m["role"] == "system"]
+    system_parts = [m["content"] for m in session.messages if m["role"] == "system"]
     non_system_messages = [
         {"role": m["role"], "content": m["content"]}
-        for m in chat_messages
+        for m in session.messages
         if m["role"] in {"user", "assistant"}
     ]
 
@@ -94,7 +92,7 @@ def _chat_with_claude(chat_messages: list[dict[str, str]], config: Config) -> di
 
     client = anthropic.Anthropic(api_key=api_key)
     kwargs: dict[str, Any] = {
-        "model": config.model,
+        "model": session.model,
         "messages": non_system_messages,
         "max_tokens": 1024,
     }
@@ -109,15 +107,18 @@ def _chat_with_claude(chat_messages: list[dict[str, str]], config: Config) -> di
     return {"reply": reply_text, "prompt_tokens": input_tokens}
 
 
-def chat_with_model(chat_messages: list[dict[str, str]], config: Config) -> dict[str, Any]:
+def chat_with_model(session: Session):
     """Call the correct backend based on the model name."""
-    if _is_claude_model(config.model):
-        return _chat_with_claude(chat_messages, config)
-    return asyncio.run(_stream_chat_with_ollama(chat_messages, config))
-
-def load_system_prompt(config: Config):
-    system_prompt = _load_text("agent.md", config) + _load_text("SKILL.md", config)
-    return system_prompt
+    if _is_claude_model(session.model):
+        response = _chat_with_claude(session)
+    response = asyncio.run(_stream_chat_with_ollama(session))
+    reply = response.get("reply", "")
+    tokens_used = int(len(reply) / session.config.chars_per_token_estimate)
+    tokens_used = response.get("prompt_tokens", tokens_used) or tokens_used
+    session.messages.append({"role": "assistant", "content": reply})
+    session.token_used += tokens_used
+    session.save_to_file()
+    return reply
 
 def truncate_output(output: str, max_chars: int) -> str:
     if len(output) <= max_chars:
@@ -159,15 +160,4 @@ def confirm_and_run(command: str, config: Config) -> str:
     return_code = process.returncode
     output = truncate_output("".join(output_lines), config.max_chars)
     return output if output else f"(exit code {return_code}, no output)"
-
-
-def reset(config: Config) -> tuple[float, list[dict[str, str]]]:
-    """Reset conversation history and token usage estimation."""
-    system_prompt = load_system_prompt(config)
-    new_tokens_used = len(system_prompt) / config.chars_per_token_estimate
-    new_messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "assistant", "content": "Hello! How can I assist you today?"},
-    ]
-    return new_tokens_used, new_messages
 
